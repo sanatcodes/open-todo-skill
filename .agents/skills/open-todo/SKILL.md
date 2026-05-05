@@ -1,18 +1,18 @@
 ---
-name: open-to-do
-description: "Use Open To Do as an HTTP-first personal task list for agents. Covers first-time email OTP setup, token configuration, reading tasks, creating tasks, updating status, progress checkpoints, events, and MCP setup."
+name: open-todo
+description: "Use Open Todo as an HTTP-first personal task list for agents. Covers first-time email OTP setup, token configuration, reading tasks, creating tasks, updating status, progress checkpoints, events, and MCP setup."
 ---
 
-# Open To Do
+# Open Todo
 
-Open To Do is an HTTP-first todo API for agents. Prefer direct HTTP calls. Use MCP only when the current agent already has the Open To Do MCP server configured.
+Open Todo is an HTTP-first todo API for agents. Prefer direct HTTP calls. Use MCP only when the current agent already has the Open Todo MCP server configured.
 
 ## Configuration
 
 Look for:
 
-- `OPEN_TO_DO_API_URL`: base Worker URL, for example `https://open-to-do.example.workers.dev`.
-- `OPEN_TO_DO_TOKEN`: bearer token returned by onboarding.
+- `OPEN_TODO_API_URL`: base Worker URL, for example `https://open-todo.example.workers.dev`.
+- `OPEN_TODO_TOKEN`: bearer token returned by onboarding.
 
 If either value is missing, run onboarding before reading or writing tasks.
 
@@ -22,7 +22,7 @@ If either value is missing, run onboarding before reading or writing tasks.
 2. Call:
 
 ```text
-POST {OPEN_TO_DO_API_URL}/auth/otp/start
+POST {OPEN_TODO_API_URL}/auth/otp/start
 Content-Type: application/json
 
 { "email": "user@example.com" }
@@ -32,22 +32,22 @@ Content-Type: application/json
 4. Call:
 
 ```text
-POST {OPEN_TO_DO_API_URL}/auth/otp/verify
+POST {OPEN_TODO_API_URL}/auth/otp/verify
 Content-Type: application/json
 
 { "email": "user@example.com", "token": "123456" }
 ```
 
-5. Save the returned `api_token` as `OPEN_TO_DO_TOKEN` in the user's local agent config or environment when the environment supports persistent config. If persistence is unavailable, keep it for the current session and tell the user what was not persisted.
-6. Use the token as `Authorization: Bearer OPEN_TO_DO_TOKEN`.
+5. Save the returned `api_token` as `OPEN_TODO_TOKEN` in the user's local agent config or environment when the environment supports persistent config. If persistence is unavailable, keep it for the current session and tell the user what was not persisted.
+6. Use the token as `Authorization: Bearer OPEN_TODO_TOKEN`.
 
 ## Fast Read
 
 Use the brief endpoint first:
 
 ```text
-GET {OPEN_TO_DO_API_URL}/tasks/brief?status=open&limit=50
-Authorization: Bearer OPEN_TO_DO_TOKEN
+GET {OPEN_TODO_API_URL}/tasks/brief?status=open&limit=50
+Authorization: Bearer OPEN_TODO_TOKEN
 ```
 
 Use `sections.urgent`, `sections.thisweek`, and `sections.upcoming` to plan work. Fetch full tasks only when notes or exact metadata are needed.
@@ -57,8 +57,8 @@ Use `sections.urgent`, `sections.thisweek`, and `sections.upcoming` to plan work
 Create a task:
 
 ```text
-POST {OPEN_TO_DO_API_URL}/tasks
-Authorization: Bearer OPEN_TO_DO_TOKEN
+POST {OPEN_TODO_API_URL}/tasks
+Authorization: Bearer OPEN_TODO_TOKEN
 Content-Type: application/json
 
 {
@@ -72,8 +72,8 @@ Content-Type: application/json
 Record progress:
 
 ```text
-POST {OPEN_TO_DO_API_URL}/tasks/TASK_ID/progress
-Authorization: Bearer OPEN_TO_DO_TOKEN
+POST {OPEN_TODO_API_URL}/tasks/TASK_ID/progress
+Authorization: Bearer OPEN_TODO_TOKEN
 X-Todo-Source: codex
 Content-Type: application/json
 
@@ -89,8 +89,8 @@ Content-Type: application/json
 Complete a task:
 
 ```text
-POST {OPEN_TO_DO_API_URL}/tasks/TASK_ID/complete
-Authorization: Bearer OPEN_TO_DO_TOKEN
+POST {OPEN_TODO_API_URL}/tasks/TASK_ID/complete
+Authorization: Bearer OPEN_TODO_TOKEN
 X-Todo-Source: codex
 ```
 
@@ -115,10 +115,10 @@ If the user wants MCP config, use:
 ```json
 {
   "mcpServers": {
-    "open-to-do": {
-      "url": "https://OPEN_TO_DO_API_URL/mcp",
+    "open-todo": {
+      "url": "https://OPEN_TODO_API_URL/mcp",
       "headers": {
-        "Authorization": "Bearer OPEN_TO_DO_TOKEN"
+        "Authorization": "Bearer OPEN_TODO_TOKEN"
       }
     }
   }

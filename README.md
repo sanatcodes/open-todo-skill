@@ -1,17 +1,17 @@
-# Open To Do Skill
+# Open Todo Skill
 
-An agent skill for setting up and operating Open To Do, an HTTP-first todo list for agents and scripts.
+An agent skill for setting up and operating Open Todo, an HTTP-first todo list for agents and scripts.
 
 ## Install
 
 ```sh
-npx skills add sanatcodes/open-to-do-skill --skill open-to-do
+npx skills add sanatcodes/open-todo-skill --skill open-todo
 ```
 
 Then ask your agent:
 
 ```text
-Set up Open To Do
+Set up Open Todo
 ```
 
 The skill walks through email OTP onboarding, stores the returned bearer token when the agent environment supports persistent config, and uses direct HTTP requests for task operations.
@@ -20,17 +20,17 @@ The skill walks through email OTP onboarding, stores the returned bearer token w
 
 This public repo contains only the installable skill:
 
-- `.agents/skills/open-to-do/SKILL.md`
-- `.agents/skills/open-to-do/agents/openai.yaml`
+- `.agents/skills/open-todo/SKILL.md`
+- `.agents/skills/open-todo/agents/openai.yaml`
 
-It does not contain the private Open To Do service implementation.
+It does not contain the private Open Todo service implementation.
 
 ## API Configuration
 
 The skill expects:
 
-- `OPEN_TO_DO_API_URL`: the deployed Open To Do Worker URL.
-- `OPEN_TO_DO_TOKEN`: the bearer token returned by OTP onboarding.
+- `OPEN_TODO_API_URL`: the deployed Open Todo Worker URL.
+- `OPEN_TODO_TOKEN`: the bearer token returned by OTP onboarding.
 
 If either value is missing, the skill starts onboarding through:
 
