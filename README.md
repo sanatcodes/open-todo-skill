@@ -14,11 +14,9 @@ Then ask your agent:
 Set up Open Todo
 ```
 
-The skill installs into supported coding agents through Vercel's `skills` CLI. It walks through email OTP onboarding, stores the returned bearer token when the agent environment supports persistent config, and then uses the fastest available route:
+The skill installs into supported coding agents through Vercel's `skills` CLI. It walks through email OTP onboarding, stores the returned bearer token when the agent environment supports persistent config, and uses direct HTTP for task operations.
 
-- CLI for local shell-capable agents.
-- Direct HTTP for hosted agents without a shell.
-- MCP when the client already has Open Todo MCP configured.
+It does not ask the agent to install extra binaries by default. If the `sanat-todo` CLI is already installed, the skill may use it as an optional convenience path.
 
 For a specific agent:
 
