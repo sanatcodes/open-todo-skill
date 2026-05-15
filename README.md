@@ -5,7 +5,7 @@ An agent skill for setting up and operating Open Todo, an HTTP-first todo list f
 ## Install
 
 ```sh
-npx skills add sanatcodes/open-todo-skill --skill open-todo
+npx skills@latest add sanatcodes/open-todo-skill --skill open-todo --global
 ```
 
 Then ask your agent:
@@ -14,7 +14,19 @@ Then ask your agent:
 Set up Open Todo
 ```
 
-The skill walks through email OTP onboarding, stores the returned bearer token when the agent environment supports persistent config, and uses direct HTTP requests for task operations.
+The skill installs into supported coding agents through Vercel's `skills` CLI. It walks through email OTP onboarding, stores the returned bearer token when the agent environment supports persistent config, and then uses the fastest available route:
+
+- CLI for local shell-capable agents.
+- Direct HTTP for hosted agents without a shell.
+- MCP when the client already has Open Todo MCP configured.
+
+For a specific agent:
+
+```sh
+npx skills@latest add sanatcodes/open-todo-skill --skill open-todo --global --agent codex --yes
+```
+
+Replace `codex` with another supported agent name such as `claude-code` or `cursor`.
 
 ## What This Repo Contains
 
@@ -29,7 +41,7 @@ It does not contain the private Open Todo service implementation.
 
 The skill expects:
 
-- `OPEN_TODO_API_URL`: the deployed Open Todo Worker URL.
+- `OPEN_TODO_API_URL`: the deployed Open Todo Worker URL. If it is missing, the skill uses the hosted default.
 - `OPEN_TODO_TOKEN`: the bearer token returned by OTP onboarding.
 
 If either value is missing, the skill starts onboarding through:

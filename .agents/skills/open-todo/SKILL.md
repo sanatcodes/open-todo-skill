@@ -1,25 +1,102 @@
 ---
 name: open-todo
-description: "Use Open Todo as an HTTP-first personal task list for agents. Covers first-time email OTP setup, token configuration, reading tasks, creating tasks, updating status, progress checkpoints, events, and MCP setup."
+description: "Use Open Todo as a personal task list for agents. Covers one-command setup, CLI install, email OTP login, credential persistence, HTTP fallback, MCP config, reading tasks, creating tasks, progress updates, and completion."
 ---
 
 # Open Todo
 
-Open Todo is an HTTP-first todo API for agents. Prefer direct HTTP calls. Use MCP only when the current agent already has the Open Todo MCP server configured.
+Open Todo is an agent-friendly todo system. Use the fastest route available in the current client:
 
-## Configuration
+1. CLI for local shell-capable agents such as Codex, Claude Code, Cursor, Gemini CLI, and OpenCode.
+2. Direct HTTP for hosted chat agents that can make network requests but cannot run a local binary.
+3. MCP only when the client already exposes Open Todo MCP tools or the user asks for MCP setup.
 
-Look for:
+Default hosted API URL:
 
-- `OPEN_TODO_API_URL`: base Worker URL, for example `https://open-todo.example.workers.dev`.
-- `OPEN_TODO_TOKEN`: bearer token returned by onboarding.
+```sh
+https://sanat-todo.sanat-thukral.workers.dev
+```
 
-If either value is missing, run onboarding before reading or writing tasks.
+If `OPEN_TODO_API_URL` is already set, use it instead of the default.
 
-## Onboarding
+## Setup
+
+First check configuration:
+
+```sh
+command -v sanat-todo
+sanat-todo config
+```
+
+If `sanat-todo` is missing and shell commands are available, install it:
+
+```sh
+curl -fsSL "${OPEN_TODO_API_URL:-https://sanat-todo.sanat-thukral.workers.dev}/install.sh" | sh
+```
+
+If the installer says the binary was placed in `~/.local/bin` but the command is still unavailable, run it by full path or tell the user to add `~/.local/bin` to `PATH`.
+
+Then log in:
+
+```sh
+sanat-todo --url "${OPEN_TODO_API_URL:-https://sanat-todo.sanat-thukral.workers.dev}" login
+```
+
+The login command asks for email, asks for the six-digit code, verifies OTP, and saves the Open Todo API token locally. After login, use `sanat-todo config` to confirm `token_saved: true` without printing the token.
+
+## Persistence Rules
+
+- Do not store tokens inside the skill source directory.
+- Prefer CLI persistence for local agents. The CLI stores credentials in `~/.config/open-todo/config.json`, or `$XDG_CONFIG_HOME/open-todo/config.json` when set.
+- Prefer the host agent's secret/config store when it exists.
+- Use environment variables for ephemeral sessions, CI, and containers.
+- If no persistent store exists, keep the token only for the current session and clearly say login will be needed again.
+- Never print a saved token during normal reads.
+
+## CLI Usage
+
+Use a stable `--source` for the current client, such as `codex`, `claude`, `cursor`, `chatgpt`, `manual-api`, or `cron`.
+
+Read open tasks:
+
+```sh
+sanat-todo brief --status open --limit 50 --pretty --source codex
+```
+
+Create a task:
+
+```sh
+sanat-todo create "Short task title" --section thisweek --tag Agent --source codex
+```
+
+Record progress:
+
+```sh
+sanat-todo progress TASK_ID "Concrete progress and next step." --source codex --metadata '{"workspace":"local","branch":"main"}'
+```
+
+Complete a task:
+
+```sh
+sanat-todo done TASK_ID --source codex
+```
+
+Use `sections.urgent`, `sections.thisweek`, and `sections.upcoming` from `brief` output to plan work. Fetch full task details only when notes or exact metadata are needed.
+
+## HTTP Fallback
+
+Use direct HTTP when the CLI is unavailable or the current client must manage credentials itself.
+
+Set the base URL:
+
+```text
+OPEN_TODO_API_URL=https://sanat-todo.sanat-thukral.workers.dev
+```
+
+If no token is available:
 
 1. Ask the user for their email address.
-2. Call:
+2. Start OTP:
 
 ```text
 POST {OPEN_TODO_API_URL}/auth/otp/start
@@ -28,8 +105,8 @@ Content-Type: application/json
 { "email": "user@example.com" }
 ```
 
-3. Ask for the six-digit OTP from email.
-4. Call:
+3. Ask for the six-digit code from email.
+4. Verify OTP:
 
 ```text
 POST {OPEN_TODO_API_URL}/auth/otp/verify
@@ -38,23 +115,19 @@ Content-Type: application/json
 { "email": "user@example.com", "token": "123456" }
 ```
 
-5. Save the returned `api_token` as `OPEN_TODO_TOKEN` in the user's local agent config or environment when the environment supports persistent config. If persistence is unavailable, keep it for the current session and tell the user what was not persisted.
-6. Use the token as `Authorization: Bearer OPEN_TODO_TOKEN`.
+5. Save the returned `api_token` as `OPEN_TODO_TOKEN` in the user's local agent config or environment when persistence is available.
+6. Send authenticated requests with `Authorization: Bearer OPEN_TODO_TOKEN`.
 
-## Fast Read
+If the user clicks an email magic link instead of providing an OTP, the callback page displays the one-time API token plus copyable `OPEN_TODO_*`, CLI, and MCP setup snippets. Ask the user to paste only the token or env snippet needed for the current client.
 
-Use the brief endpoint first:
+Fast read:
 
 ```text
 GET {OPEN_TODO_API_URL}/tasks/brief?status=open&limit=50
 Authorization: Bearer OPEN_TODO_TOKEN
 ```
 
-Use `sections.urgent`, `sections.thisweek`, and `sections.upcoming` to plan work. Fetch full tasks only when notes or exact metadata are needed.
-
-## Writes
-
-Create a task:
+Create task:
 
 ```text
 POST {OPEN_TODO_API_URL}/tasks
@@ -65,7 +138,8 @@ Content-Type: application/json
   "title": "Short task title",
   "notes": "Optional context",
   "section": "upcoming",
-  "tag": "Optional"
+  "tag": "Optional",
+  "source": "codex"
 }
 ```
 
@@ -86,7 +160,7 @@ Content-Type: application/json
 }
 ```
 
-Complete a task:
+Complete:
 
 ```text
 POST {OPEN_TODO_API_URL}/tasks/TASK_ID/complete
@@ -94,29 +168,15 @@ Authorization: Bearer OPEN_TODO_TOKEN
 X-Todo-Source: codex
 ```
 
-Or record final progress and complete in one call:
-
-```json
-{
-  "summary": "Finished implementation and tests.",
-  "status": "done",
-  "source": "codex"
-}
-```
-
-## Source Attribution
-
-Always identify the client on writes with either `X-Todo-Source` or a JSON `source` field. Use stable values such as `codex`, `claude`, `cursor`, `raycast`, `manual-api`, or `cron`. Put branch names, model names, run IDs, and workspaces in `metadata`.
-
 ## MCP
 
-If the user wants MCP config, use:
+When the user wants MCP config, use:
 
 ```json
 {
   "mcpServers": {
     "open-todo": {
-      "url": "https://OPEN_TODO_API_URL/mcp",
+      "url": "https://sanat-todo.sanat-thukral.workers.dev/mcp",
       "headers": {
         "Authorization": "Bearer OPEN_TODO_TOKEN"
       }
@@ -124,3 +184,9 @@ If the user wants MCP config, use:
   }
 }
 ```
+
+If `OPEN_TODO_API_URL` is set, replace the URL with `{OPEN_TODO_API_URL}/mcp`.
+
+## Source Attribution
+
+Always identify the client on writes with either `--source`, `X-Todo-Source`, or a JSON `source` field. Put branch names, model names, run IDs, and workspaces in `metadata`, not in `source`.
