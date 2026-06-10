@@ -1,27 +1,27 @@
-# Open Todo Skill
+# Auto Todo Skill
 
-An agent skill for setting up and operating Open Todo, an HTTP-first todo list for agents and scripts.
+An agent skill for setting up and operating Auto Todo, an HTTP-first todo list for agents and scripts.
 
 ## Install
 
 ```sh
-npx skills@latest add sanatcodes/open-todo-skill --skill open-todo --global
+npx skills@latest add sanatcodes/auto-todo-skill --skill auto-todo --global
 ```
 
 Then ask your agent:
 
 ```text
-Set up Open Todo
+Set up Auto Todo
 ```
 
 The skill installs into supported coding agents through Vercel's `skills` CLI. It walks through email OTP onboarding, stores the returned bearer token when the agent environment supports persistent config, and uses direct HTTP for task operations.
 
-It does not ask the agent to install extra binaries by default. If the `sanat-todo` CLI is already installed, the skill may use it as an optional convenience path.
+It does not ask the agent to install extra binaries by default. If the `auto-todo` CLI is already installed, the skill may use it as an optional convenience path.
 
 For a specific agent:
 
 ```sh
-npx skills@latest add sanatcodes/open-todo-skill --skill open-todo --global --agent codex --yes
+npx skills@latest add sanatcodes/auto-todo-skill --skill auto-todo --global --agent codex --yes
 ```
 
 Replace `codex` with another supported agent name such as `claude-code` or `cursor`.
@@ -30,17 +30,17 @@ Replace `codex` with another supported agent name such as `claude-code` or `curs
 
 This public repo contains only the installable skill:
 
-- `.agents/skills/open-todo/SKILL.md`
-- `.agents/skills/open-todo/agents/openai.yaml`
+- `.agents/skills/auto-todo/SKILL.md`
+- `.agents/skills/auto-todo/agents/openai.yaml`
 
-It does not contain the private Open Todo service implementation.
+It does not contain the private Auto Todo service implementation.
 
 ## API Configuration
 
 The skill expects:
 
-- `OPEN_TODO_API_URL`: the deployed Open Todo Worker URL. If it is missing, the skill uses the hosted default.
-- `OPEN_TODO_TOKEN`: the bearer token returned by OTP onboarding.
+- `AUTO_TODO_API_URL`: the deployed Auto Todo Worker URL. If it is missing, the skill uses the hosted default.
+- `AUTO_TODO_TOKEN`: the bearer token returned by OTP onboarding.
 
 If either value is missing, the skill starts onboarding through:
 
